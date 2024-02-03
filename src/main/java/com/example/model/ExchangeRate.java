@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 
-@Document(collection = "exchange_rates")
+@Document(collection = "exchangeRateCollection")
 public class ExchangeRate {
     @Id
     private String id;

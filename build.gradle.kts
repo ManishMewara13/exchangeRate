@@ -1,7 +1,11 @@
 plugins {
     id("java")
-    id ("org.springframework.boot") version ("2.6.2")
+    id ("org.springframework.boot") version ("2.7.10")
     id ("io.spring.dependency-management") version ("1.0.11.RELEASE")
+}
+
+springBoot {
+    mainClass.set("com.example.demo.ExchangeRateApplication")
 }
 
 group = "com.example"
@@ -18,6 +22,10 @@ dependencies {
     implementation ("org.springframework.boot:spring-boot-starter-web")
     implementation ("org.springframework.boot:spring-boot-starter-data-mongodb")
     testImplementation ("org.springframework.boot:spring-boot-starter-test")
+
+//    implementation ("org.slf4j:slf4j-api:2.0.0-alpha1")
+    implementation ("ch.qos.logback:logback-classic:1.2.6")
+
 }
 
 tasks.test {

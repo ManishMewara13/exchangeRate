@@ -2,20 +2,24 @@ package com.example.controller;
 
 import com.example.model.ExchangeRate;
 import com.example.service.ExchangeRateService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/exchange-rates")
+@RequestMapping("/api/exchangeRates")
 public class ExchangeRateController {
+    private static final Logger log = LoggerFactory.getLogger(ExchangeRateController.class);
 
     @Autowired
     private ExchangeRateService exchangeRateService;
 
     @GetMapping("/getAll")
     public List<ExchangeRate> getAllExchangeRates() {
+        log.info("inside getAll");
         return exchangeRateService.getAllExchangeRates();
     }
 
