@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class ExternalApiService {
 
-    private final String EXTERNAL_API_URL = "https://api.example.com/";
+    private final String EXTERNAL_API_URL = "http://127.0.0.1:8080/";
 
     private final RestTemplate restTemplate;
 
