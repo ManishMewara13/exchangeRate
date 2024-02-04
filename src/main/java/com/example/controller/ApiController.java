@@ -11,7 +11,7 @@ public class ApiController {
     @Autowired
     private ExternalApiService externalApiService;
 
-    @GetMapping("/api/exchange-rates")
+    @GetMapping("/api/exchangeRates")
     public String getExchangeRateData() {
         return externalApiService.fetchExchangeRateData();
     }
