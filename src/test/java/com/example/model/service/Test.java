@@ -1,24 +1,26 @@
 package com.example.model.service;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 
 public class Test {
     public static void main(String[] args) {
+        boolean documentsPresent = checkDocuments("20231202");
+        System.out.println("Documents present: " + documentsPresent);
+    }
 
-        // Get date
-        Calendar calendar = Calendar.getInstance();
-        Date dateToday = calendar.getTime();
-        calendar.add(Calendar.YEAR, -1);
-        Date oneYearAgo = calendar.getTime();
-
-        // Format the date
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String lastDate = dateFormat.format(oneYearAgo);
-        String toadayDate = dateFormat.format(dateToday);
-
-        System.out.println("Date oneYearAgo: " + lastDate);
-        System.out.println("Date toadayDate: " + toadayDate);
+    public static boolean checkDocuments(String date) {
+        try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017")) {
+            MongoDatabase database = mongoClient.getDatabase("exchangeRateDb");
+            MongoCollection<Document> collection = database.getCollection("exchangeRateCollection");
+            Document query = new Document("date", date);
+            return collection.countDocuments(query) > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // Handle exceptions by returning false
+        }
     }
 }

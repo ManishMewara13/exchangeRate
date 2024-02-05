@@ -1,45 +1,54 @@
 package com.example.schedular;
 
-import com.example.ExchangeRateApplication;
 import com.example.model.ExchangeRate;
 import com.example.repository.ExchangeRateRepository;
 import com.example.service.ExternalApiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Scheduler class to fetch and store exchange rates periodically.
+ */
 @Component
 public class ExchangeRateScheduler {
-    private static Logger log = Logger.getLogger(ExchangeRateScheduler.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(ExchangeRateScheduler.class);
+
     @Autowired
     private ExternalApiService externalApiService;
+
     @Autowired
     private ExchangeRateRepository exchangeRateRepository;
 
-    // Define a scheduled task to fetch and store exchange rate data
-    @Scheduled(cron = "0 0 0 * * ?") // Run everyday at midnight
+    /**
+     * Scheduled method to fetch and store exchange rates from external API.
+     * Runs everyday at midnight.
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
     public void fetchAndStoreExchangeRates() {
         log.info("Inside ExchangeRateScheduler - fetchAndStoreExchangeRates");
-        // Get date
-        Calendar calendar = Calendar.getInstance();
-        Date dateToday = calendar.getTime();
-        calendar.add(Calendar.YEAR, -1);
-        Date oneYearAgo = calendar.getTime();
 
-        // Format the date
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String lastDate = dateFormat.format(oneYearAgo);
-        String toadayDate = dateFormat.format(dateToday);
-        List<ExchangeRate> exchangeRates = externalApiService.fetchExchangeRatesForUSD(lastDate, toadayDate);
+        // Fetch exchange rates from external API
+        List<ExchangeRate> exchangeRates = externalApiService.fetchExchangeRatesForUSD();
 
-        // Save the fetched exchange rates to the MongoDB collection
+        // Print the size of the fetched exchange rates (for debugging purposes)
+        log.info("Fetched exchange rates size: {}", exchangeRates.size());
+
+        // Save fetched exchange rates to the database
         exchangeRateRepository.saveAll(exchangeRates);
     }
-}
 
+    /**
+     * Event listener to trigger fetching and storing exchange rates when the application is ready.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReadyEvent() {
+        fetchAndStoreExchangeRates();
+    }
+}

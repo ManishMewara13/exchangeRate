@@ -25,7 +25,8 @@ dependencies {
 
 //    implementation ("org.slf4j:slf4j-api:2.0.0-alpha1")
     implementation ("ch.qos.logback:logback-classic:1.2.6")
-
+    implementation ("org.json","json", "20210307")
+    implementation ("org.projectlombok:lombok:1.18.20")
 }
 
 tasks.test {
