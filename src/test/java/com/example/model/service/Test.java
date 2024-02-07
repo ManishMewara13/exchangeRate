@@ -1,26 +1,50 @@
 package com.example.model.service;
 
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Test {
     public static void main(String[] args) {
-        boolean documentsPresent = checkDocuments("20231202");
-        System.out.println("Documents present: " + documentsPresent);
+        secondFunc();
     }
 
-    public static boolean checkDocuments(String date) {
-        try (MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017")) {
-            MongoDatabase database = mongoClient.getDatabase("exchangeRateDb");
-            MongoCollection<Document> collection = database.getCollection("exchangeRateCollection");
-            Document query = new Document("date", date);
-            return collection.countDocuments(query) > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false; // Handle exceptions by returning false
+    public static void secondFunc() {
+        LocalDate today = LocalDate.now();
+        LocalDate lastYear = today.minusYears(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        // Iterate through dates from last year to today
+        while (!lastYear.isAfter(today)) {
+            String formattedDate = lastYear.format(formatter);
+            int year = lastYear.getYear();
+            int month = lastYear.getMonthValue();
+            int day = lastYear.getDayOfMonth();
+            System.out.println("Date : " + year + month + day);
+
+            // Move to the next day
+            lastYear = lastYear.plusDays(1);
+        }
+    }
+
+
+
+    public static void firstFunc() {
+        //  Get today's date
+        LocalDate today = LocalDate.now();
+
+        // Get the date for the same day last year
+        LocalDate lastYear = today.minusYears(1);
+
+        // Format the dates
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        // Iterate through dates from last year to today
+        LocalDate currentDate = lastYear;
+        while (!currentDate.isAfter(today)) {
+            String formattedDate = currentDate.format(formatter);
+            System.out.println("Date: " + formattedDate);
+            currentDate = currentDate.plusDays(1);
         }
     }
 }

@@ -16,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import org.slf4j.Logger;
@@ -27,54 +28,6 @@ public class ExternalApiService {
 
     @Autowired
     private ExchangeRateRepository exchangeRateRepository;
-
-    /**
-     * Fetch exchange rates for a given year from an external API.
-     *
-     * @param year The year for which exchange rates are to be fetched.
-     * @return A map of exchange rates for each date in the specified year.
-     */
-    public Map<String, Double> getExchangeRatesForYear(int year) {
-        log.info("Fetching exchange rates for year: {}", year);
-        Map<String, Double> exchangeRates = new HashMap<>();
-        HttpClient httpClient = HttpClient.newHttpClient();
-
-        String baseUrl = "https://v6.exchangerate-api.com/v6/28b8780f8804d0f8bf92d7e9/history/INR/%d/%d/%d";
-
-        for (int month = 1; month <= 12; month++) {
-            String formattedMonth = String.format("%02d", month);
-            for (int day = 1; day <= 31; day++) {
-                String formattedDay = String.format("%02d", day);
-
-                if (!checkDocuments(year + formattedMonth + formattedDay)) {
-                    log.debug("Date: {}-{}-{}", year, formattedMonth, formattedDay);
-
-                    String url = String.format(baseUrl, year, month, day);
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(URI.create(url))
-                            .build();
-
-                    try {
-                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-                        if (response.statusCode() == 200) {
-                            String responseBody = response.body();
-                            String date = String.format("%d%02d%02d", year, month, day);
-                            double usdRate = parseUSDFromResponse(responseBody);
-                            exchangeRates.put(date, usdRate);
-                        } else {
-                            break;
-                        }
-                    } catch (Exception e) {
-                        log.error("Error fetching exchange rates: {}", e.getMessage());
-                    }
-                } else {
-                    log.debug("MongoDB has the document for this date: {}-{}-{}", year, formattedMonth, formattedDay);
-                }
-            }
-        }
-        return exchangeRates;
-    }
 
     /**
      * Parse USD exchange rate from the response body of the external API.
@@ -133,5 +86,63 @@ public class ExternalApiService {
             log.error("Error checking documents: {}", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Fetch exchange rates for a given year from an external API.
+     *
+     * @param year The year for which exchange rates are to be fetched.
+     * @return A map of exchange rates for each date in the specified year.
+     */
+    public Map<String, Double> getExchangeRatesForYear(int year) {
+        log.info("Fetching exchange rates for year: {}", year);
+        Map<String, Double> exchangeRates = new HashMap<>();
+        HttpClient httpClient = HttpClient.newHttpClient();
+
+        String baseUrl = "https://v6.exchangerate-api.com/v6/28b8780f8804d0f8bf92d7e9/history/INR/%d/%d/%d";
+
+        LocalDate today = LocalDate.now();
+        LocalDate lastYear = today.minusYears(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        // Iterate through dates from last year to today
+        while (!lastYear.isAfter(today)) {
+            String formattedDate = lastYear.format(formatter);
+            int years = lastYear.getYear();
+            int month = lastYear.getMonthValue();
+            int day = lastYear.getDayOfMonth();
+
+            String formattedMonth = String.format("%02d", month);
+            String formattedDay = String.format("%02d", day);
+
+            if (!checkDocuments(String.valueOf(years + formattedMonth + formattedDay))) {
+                log.debug("Date: {}-{}-{}", years, formattedMonth, formattedDay);
+
+                String url = String.format(baseUrl, years, month, day);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .build();
+
+                try {
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    if (response.statusCode() == 200) {
+                        String responseBody = response.body();
+                        String date = String.format("%d%02d%02d", years, month, day);
+                        double usdRate = parseUSDFromResponse(responseBody);
+                        exchangeRates.put(date, usdRate);
+                    } else {
+                        log.error("response : "+response);
+                        break;
+                    }
+                    lastYear = lastYear.plusDays(1);
+                } catch (Exception e) {
+                    log.error("Error fetching exchange rates: {}", e.getMessage());
+                }
+            } else {
+                log.debug("MongoDB has the document for this date: {}-{}-{}", years, formattedMonth, formattedDay);
+            }
+        }
+        return exchangeRates;
     }
 }
