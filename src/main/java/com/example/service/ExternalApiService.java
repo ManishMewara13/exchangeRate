@@ -142,6 +142,7 @@ public class ExternalApiService {
             } else {
                 log.debug("MongoDB has the document for this date: {}-{}-{}", years, formattedMonth, formattedDay);
             }
+            lastYear = lastYear.plusDays(1);
         }
         return exchangeRates;
     }
